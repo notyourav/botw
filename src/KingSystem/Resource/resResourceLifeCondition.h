@@ -13,21 +13,19 @@ class LifeCondition : public ParamIO, public Resource {
 
     bool parse_(u8* data, size_t size, sead::Heap* heap) override;
 
-    bool parse(u8* data, size_t size, sead::Heap* heap);
-
-    agl::utl::IParameterObj invalidWeathersObj;
-    agl::utl::IParameterObj invalidTimesObj;
-    agl::utl::IParameterObj displayDistanceObj;
-    agl::utl::IParameterObj deleteWeathersObj;
-    agl::utl::IParameterObj deleteTimesObj;
-    agl::utl::IParameterObj boundingYObj;
-    agl::utl::IParameterObj yLimitAlgorithmObj;
+    agl::utl::IParameterObj mInvalidWeathersObj;
+    agl::utl::IParameterObj mInvalidTimesObj;
+    agl::utl::IParameterObj mDisplayDistanceObj;
+    agl::utl::IParameterObj mDeleteWeathersObj;
+    agl::utl::IParameterObj mDeleteTimesObj;
+    agl::utl::IParameterObj mBoundingYObj;
+    agl::utl::IParameterObj mYLimitAlgorithmObj;
 
     sead::Buffer<agl::utl::Parameter<sead::SafeString>> mInvalidWeathersBuffer;
     sead::Buffer<agl::utl::Parameter<sead::SafeString>> mInvalidTimesBuffer;
-    agl::utl::Parameter<float> displayDistance;
-    agl::utl::Parameter<sead::SafeString> boundingY;
-    agl::utl::Parameter<sead::SafeString> yLimitAlgorithm;
+    agl::utl::Parameter<f32> mDisplayDistance;
+    agl::utl::Parameter<sead::SafeString> mBoundingY;
+    agl::utl::Parameter<sead::SafeString> mYLimitAlgorithm;
     sead::Buffer<agl::utl::Parameter<sead::SafeString>> mDeleteWeathersBuffer;
     sead::Buffer<agl::utl::Parameter<sead::SafeString>> mDeleteTimesBuffer;
 };

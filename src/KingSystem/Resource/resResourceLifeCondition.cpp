@@ -1,15 +1,10 @@
-#include <codec/seadHashCRC32.h>
 #include "KingSystem/Resource/resResourceLifeCondition.h"
+#include <codec/seadHashCRC32.h>
 
 namespace ksys::res {
 
-bool LifeCondition::parse_(u8* data, size_t size, sead::Heap* heap) {
-    parse(data, size, heap);
-    return true;
-}
-
 // NON_MATCHING: two instructions swapped
-bool LifeCondition::parse(u8* data, size_t size, sead::Heap* heap) {
+bool LifeCondition::parse_(u8* data, size_t, sead::Heap* heap) {
     if (!data)
         return true;
 
@@ -17,46 +12,46 @@ bool LifeCondition::parse(u8* data, size_t size, sead::Heap* heap) {
     const agl::utl::ResParameterArchive archive{data};
     const auto root = archive.getRootList();
 
-    const auto invalidWeathers_obj = agl::utl::getResParameterObj(root, "InvalidWeathers");
-    if (invalidWeathers_obj.ptr())
-        LifeCondition::parseArray(&invalidWeathers_obj, &invalidWeathersObj,
+    const auto invalid_weathers_obj = agl::utl::getResParameterObj(root, "InvalidWeathers");
+    if (invalid_weathers_obj.ptr())
+        LifeCondition::parseArray(&invalid_weathers_obj, &mInvalidWeathersObj,
                                   &mInvalidWeathersBuffer, "InvalidWeathers", "天候", heap);
 
-    const auto invalidTimes_obj = agl::utl::getResParameterObj(root, "InvalidTimes");
-    if (invalidTimes_obj.ptr())
-        LifeCondition::parseArray(&invalidTimes_obj, &invalidTimesObj, &mInvalidTimesBuffer,
+    const auto invalid_times_obj = agl::utl::getResParameterObj(root, "InvalidTimes");
+    if (invalid_times_obj.ptr())
+        LifeCondition::parseArray(&invalid_times_obj, &mInvalidTimesObj, &mInvalidTimesBuffer,
                                   "InvalidTimes", "時間", heap);
 
-    const auto displayDistance_obj = agl::utl::getResParameterObj(root, "DisplayDistance");
-    if (displayDistance_obj.ptr()) {
-        displayDistance.init(0.0, "Item", "表示距離", &displayDistanceObj);
-        addObj(&displayDistanceObj, "DisplayDistance");
-        displayDistanceObj.applyResParameterObj(displayDistance_obj, nullptr);
+    const auto display_distance_obj = agl::utl::getResParameterObj(root, "DisplayDistance");
+    if (display_distance_obj.ptr()) {
+        mDisplayDistance.init(0.0, "Item", "表示距離", &mDisplayDistanceObj);
+        addObj(&mDisplayDistanceObj, "DisplayDistance");
+        mDisplayDistanceObj.applyResParameterObj(display_distance_obj, nullptr);
     }
 
-    const auto autoDisplayDistanceAlgorithm_obj =
+    const auto auto_display_distance_algorithm_obj =
         agl::utl::getResParameterObj(root, "AutoDisplayDistanceAlgorithm");
-    if (autoDisplayDistanceAlgorithm_obj.ptr()) {
-        boundingY.init("Bouding.Y", "Item", "自動距離算出アルゴリズム", &boundingYObj);
-        addObj(&boundingYObj, "AutoDisplayDistanceAlgorithm");
-        boundingYObj.applyResParameterObj(autoDisplayDistanceAlgorithm_obj, nullptr);
+    if (auto_display_distance_algorithm_obj.ptr()) {
+        mBoundingY.init("Bouding.Y", "Item", "自動距離算出アルゴリズム", &mBoundingYObj);
+        addObj(&mBoundingYObj, "AutoDisplayDistanceAlgorithm");
+        mBoundingYObj.applyResParameterObj(auto_display_distance_algorithm_obj, nullptr);
     }
 
-    const auto yLimitAlgorithm_obj = agl::utl::getResParameterObj(root, "YLimitAlgorithm");
-    if (yLimitAlgorithm_obj.ptr()) {
-        yLimitAlgorithm.init("NoLimit", "Item", "Y制限アルゴリズム", &yLimitAlgorithmObj);
-        addObj(&yLimitAlgorithmObj, "YLimitAlgorithm");
-        yLimitAlgorithmObj.applyResParameterObj(yLimitAlgorithm_obj, nullptr);
+    const auto y_limit_algorithm_obj = agl::utl::getResParameterObj(root, "YLimitAlgorithm");
+    if (y_limit_algorithm_obj.ptr()) {
+        mYLimitAlgorithm.init("NoLimit", "Item", "Y制限アルゴリズム", &mYLimitAlgorithmObj);
+        addObj(&mYLimitAlgorithmObj, "YLimitAlgorithm");
+        mYLimitAlgorithmObj.applyResParameterObj(y_limit_algorithm_obj, nullptr);
     }
 
-    const auto deleteWeathers_obj = agl::utl::getResParameterObj(root, "DeleteWeathers");
-    if (deleteWeathers_obj.ptr())
-        LifeCondition::parseArray(&deleteWeathers_obj, &deleteWeathersObj, &mDeleteWeathersBuffer,
+    const auto delete_weathers_obj = agl::utl::getResParameterObj(root, "DeleteWeathers");
+    if (delete_weathers_obj.ptr())
+        LifeCondition::parseArray(&delete_weathers_obj, &mDeleteWeathersObj, &mDeleteWeathersBuffer,
                                   "DeleteWeathers", "天候", heap);
 
-    const auto deleteTimes_obj = agl::utl::getResParameterObj(root, "DeleteTimes");
-    if (deleteTimes_obj.ptr())
-        LifeCondition::parseArray(&deleteTimes_obj, &deleteTimesObj, &mDeleteTimesBuffer,
+    const auto delete_times_obj = agl::utl::getResParameterObj(root, "DeleteTimes");
+    if (delete_times_obj.ptr())
+        LifeCondition::parseArray(&delete_times_obj, &mDeleteTimesObj, &mDeleteTimesBuffer,
                                   "DeleteTimes", "時間", heap);
 
     return true;
