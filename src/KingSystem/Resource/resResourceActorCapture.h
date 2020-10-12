@@ -54,5 +54,6 @@ public:
     ActorInfo mActorInfoObj;
     LightInfo mLightInfoObj;
 };
+KSYS_CHECK_SIZE_NX150(ActorCapture, 0x538);
 
 }  // namespace ksys::res
