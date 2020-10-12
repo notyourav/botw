@@ -8,20 +8,21 @@
 namespace ksys::res {
 
 class ActorCapture : public ParamIO, public Resource {
+public:
     struct ActorCaptureConstants {
         ActorCaptureConstants() {
             cameraPosition = {0, 2, 5};
             cameraDirection = {0, 2, 0};
             actorPosition = sead::Vector3f::zero;
             actorRotation = sead::Vector3f::zero;
-            lightDirection = {0.57206, -0.70711, -0.41563};
+            lightDirection = {0.5720610022544861, -0.7071070075035095, -0.41562700271606445};
         }
 
         sead::Vector3f cameraPosition;
         sead::Vector3f cameraDirection;
+        sead::Vector3f lightDirection;
         sead::Vector3f actorPosition;
         sead::Vector3f actorRotation;
-        sead::Vector3f lightDirection;
     };
 
     struct CameraInfo : agl::utl::ParameterObj {
@@ -46,10 +47,10 @@ class ActorCapture : public ParamIO, public Resource {
         agl::utl::Parameter<sead::Vector3f> direction;
     };
 
-public:
     ActorCapture();
 
-    static ActorCaptureConstants sConstants;
+    static const ActorCaptureConstants& getConstants();
+
     CameraInfo mCameraInfoObj;
     ActorInfo mActorInfoObj;
     LightInfo mLightInfoObj;

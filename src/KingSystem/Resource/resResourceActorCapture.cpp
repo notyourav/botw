@@ -2,6 +2,12 @@
 
 namespace ksys::res {
 
+static ActorCapture::ActorCaptureConstants sConstants;
+
+const ActorCapture::ActorCaptureConstants& ActorCapture::getConstants() {
+    return sConstants;
+}
+
 ActorCapture::ActorCapture() : ParamIO("actcapt", 0) {
     addObj(&mCameraInfoObj, "camera_info");
     mCameraInfoObj.position.init(sConstants.cameraPosition, "pos", "カメラ位置", &mCameraInfoObj);
