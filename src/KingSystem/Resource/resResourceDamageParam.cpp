@@ -23,14 +23,14 @@ bool DamageParam::parse_(u8* data, size_t, sead::Heap* heap) {
             const auto i = source.getRelativeIndex();
             const auto j = size.getRelativeIndex();
             if (source == DamageSource::Arrow) {
-                mDamageTypeBuffer[i * 4 + j].init("通常ダメージ", str, "", &mReactionTableObj);
+                mDamageTypeBuffer.get(i * 4 + j)->init("通常ダメージ", str, "", &mReactionTableObj);
             } else if (j == DamageSize::Large || j == DamageSize::Huge ||
                        source == DamageSource::Bomb || source == DamageSource::LargeSword) {
-                mDamageTypeBuffer[i * 4 + j].init("吹っ飛び", str, "", &mReactionTableObj);
+                mDamageTypeBuffer.get(i * 4 + j)->init("吹っ飛び", str, "", &mReactionTableObj);
             } else if (j == DamageSize::Middle) {
-                mDamageTypeBuffer[i * 4 + j].init("中ダメージ", str, "", &mReactionTableObj);
+                mDamageTypeBuffer.get(i * 4 + j)->init("中ダメージ", str, "", &mReactionTableObj);
             } else {
-                mDamageTypeBuffer[i * 4 + j].init("通常ダメージ", str, "", &mReactionTableObj);
+                mDamageTypeBuffer.get(i * 4 + j)->init("通常ダメージ", str, "", &mReactionTableObj);
             }
         }
     }
