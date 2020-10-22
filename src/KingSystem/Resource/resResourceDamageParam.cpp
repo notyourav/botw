@@ -8,23 +8,26 @@ SEAD_ENUM_IMPL(DamageParam::DamageSize)
 DamageParam::DamageParam() : ParamIO("dmgparam", 0) {}
 
 bool DamageParam::parse_(u8* data, size_t, sead::Heap* heap) {
-    mDamageRateBuffer.allocBufferAssert(10, heap);
-    mDamageTypeBuffer.allocBufferAssert(40, heap);
+    mDamageRateBuffer.allocBufferAssert(DamageSource::size(), heap);
+    mDamageTypeBuffer.allocBufferAssert(DamageSource::size() * DamageSize::size(), heap);
 
     sead::FormatFixedSafeString<64> str;
-    for (int i = 0; i != DamageSource::size(); ++i) {
-        str.format("%s", DamageSource::text(i));
-        mDamageRateBuffer[i].init(1.0, str, "", &mDamageRateObj);
+    for (auto source : DamageSource{}) {
+        str.format("%s", source.text());
+        mDamageRateBuffer[source.getRelativeIndex()].init(1.0, str, "", &mDamageRateObj);
     }
 
-    for (int i = 0; i < DamageSource::size(); ++i) {
-        for (int j = 0; j < DamageSize::size(); ++j) {
-            str.format("%s-%s", DamageSource::text(i), DamageSize::text(j));
-            if (i == 3) {
+    for (auto source : DamageSource{}) {
+        for (auto size : DamageSize{}) {
+            str.format("%s-%s", source.text(), size.text());
+            const auto i = source.getRelativeIndex();
+            const auto j = size.getRelativeIndex();
+            if (source == DamageSource::Arrow) {
                 mDamageTypeBuffer[i * 4 + j].init("通常ダメージ", str, "", &mReactionTableObj);
-            } else if (j == 2 || j == 3 || i == 4 || i == 1) {
+            } else if (j == DamageSize::Large || j == DamageSize::Huge ||
+                       source == DamageSource::Bomb || source == DamageSource::LargeSword) {
                 mDamageTypeBuffer[i * 4 + j].init("吹っ飛び", str, "", &mReactionTableObj);
-            } else if (j == 1) {
+            } else if (j == DamageSize::Middle) {
                 mDamageTypeBuffer[i * 4 + j].init("中ダメージ", str, "", &mReactionTableObj);
             } else {
                 mDamageTypeBuffer[i * 4 + j].init("通常ダメージ", str, "", &mReactionTableObj);
