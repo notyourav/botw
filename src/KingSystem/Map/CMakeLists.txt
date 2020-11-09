@@ -4,4 +4,5 @@ target_sources(uking PRIVATE
   mapMubinIter.h
   mapObject.cpp
   mapObject.h
+  placementLink.h
 )
