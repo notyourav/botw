@@ -2,6 +2,8 @@ target_sources(uking PRIVATE
   Account.cpp
   Account.h
   KingEditor.h
+  NFP.cpp
+  NFP.h
   OverlayArena.cpp
   OverlayArena.h
   OverlayArenaSystem.cpp
