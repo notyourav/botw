@@ -127,17 +127,23 @@ public:
     bool getVariationMatAnim(const char* actor, const char** anim, f32* frame) const;
     bool getName(al::ByamlIter* iter, const char** name, s32 idx) const;
 
-    const char* getString(const char* actor, const char* key, const sead::SafeString& default_,
+    const char* getString(const char* actor, const char* key,
+                          const sead::SafeString& default_ = sead::SafeString::cEmptyString,
                           bool x = true) const;
     s32 getInt(const char* actor, const char* key, s32 default_ = 0, bool x = true) const;
     f32 getFloat(const char* actor, const char* key, f32 default_ = 0, bool x = true) const;
     bool getBool(const char* actor, const char* key, bool default_ = false, bool x = true) const;
 
-    static s32 getIntByKey(const al::ByamlIter& iter, const char* key, s32 default_ = 0);
-    static f32 getFloatByKey(const al::ByamlIter& iter, const char* key, f32 default_ = 0);
-    static bool getBoolByKey(const al::ByamlIter& iter, const char* key, bool default_ = false);
-    static const char* getStringByKey(const al::ByamlIter& iter, const char* key,
-                                      const sead::SafeString& default_);
+    static s32 getIntByKey(const al::ByamlIter& iter, const char* key, s32 default_ = 0,
+                           bool x = true);
+    static f32 getFloatByKey(const al::ByamlIter& iter, const char* key, f32 default_ = 0,
+                             bool x = true);
+    static bool getBoolByKey(const al::ByamlIter& iter, const char* key, bool default_ = false,
+                             bool x = true);
+    static const char*
+    getStringByKey(const al::ByamlIter& iter, const char* key,
+                   const sead::SafeString& default_ = sead::SafeString::cEmptyString,
+                   bool x = true);
 
 private:
     struct DebugEntry {

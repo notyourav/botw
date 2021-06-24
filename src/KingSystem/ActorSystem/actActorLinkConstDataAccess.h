@@ -17,6 +17,17 @@ public:
     /// Destructor that automatically releases any acquired BaseProc.
     ~ActorLinkConstDataAccess();
 
+    ActorLinkConstDataAccess(const ActorLinkConstDataAccess&) = delete;
+    ActorLinkConstDataAccess& operator=(const ActorLinkConstDataAccess&) = delete;
+    ActorLinkConstDataAccess(ActorLinkConstDataAccess&& other) noexcept {
+        *this = std::move(other);
+    }
+    ActorLinkConstDataAccess& operator=(ActorLinkConstDataAccess&& other) noexcept {
+        std::swap(mAcquired, other.mAcquired);
+        std::swap(mProc, other.mProc);
+        return *this;
+    }
+
     /// Acquire a BaseProc. This increments its reference count.
     /// If an actor was already acquired, it is released.
     bool acquire(BaseProc* proc);
@@ -27,6 +38,9 @@ public:
 
 protected:
     friend class ActorConstDataAccess;
+    friend class BaseProc;
+    friend class BaseProcHandle;
+    friend class BaseProcUnit;
 
     bool mAcquired = false;
     BaseProc* mProc = nullptr;

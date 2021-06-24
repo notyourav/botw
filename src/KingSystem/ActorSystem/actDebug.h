@@ -8,11 +8,13 @@ namespace ksys::act {
 
 class ActorDebug {
     SEAD_SINGLETON_DISPOSER(ActorDebug)
+    ActorDebug();
     virtual ~ActorDebug();
 
 public:
     enum class Flag {
         _10000000 = 0x10000000,
+        _20000000 = 0x20000000,
     };
 
     struct HashUnused {

@@ -9,6 +9,7 @@
 #include <prim/seadTypedBitFlag.h>
 #include <thread/seadMutex.h>
 #include <type_traits>
+#include "KingSystem/GameData/gdtFlagHandle.h"
 #include "KingSystem/GameData/gdtTriggerParam.h"
 #include "KingSystem/Resource/resHandle.h"
 #include "KingSystem/System/KingEditor.h"
@@ -19,6 +20,10 @@ namespace sead {
 class Framework;
 class MethodTreeMgr;
 }  // namespace sead
+
+namespace ksys::map {
+class MubinIter;
+}
 
 namespace ksys::gdt {
 
@@ -51,10 +56,6 @@ struct SetterTraits {
 };
 
 }  // namespace detail
-
-enum class FlagHandle : u32 {};
-
-constexpr FlagHandle InvalidHandle = FlagHandle(-1);
 
 class TriggerParamRef {
 public:
@@ -214,7 +215,7 @@ class Manager : public IManager, public KingEditorComponent {
     Manager();
     ~Manager() override;
     const char* getName() const override { return "GameData"; }
-    void syncData(const char* data) override;
+    void syncData(char* data) override;
 
 public:
     struct ResetEvent {
@@ -228,6 +229,20 @@ public:
 
     using ResetSignal = sead::DelegateEvent<ResetEvent*>;
     using ReinitSignal = sead::DelegateEvent<ReinitEvent*>;
+
+    void init(sead::Heap* heap, sead::Framework* framework);
+    void calc();
+
+    void addReinitCallback(ReinitSignal::Slot& slot);
+    void removeReinitCallback(ReinitSignal::Slot& slot);
+
+    void setCurrentRupeeFlagName(const sead::SafeString& name);
+    void requestResetAllFlagsToInitial();
+
+    /// Checks whether quest flags (e.g. Kass shrine quest flags) are set or cleared properly
+    /// and takes any action necessary to fix them.
+    void fixQuestFlags();
+    void fixQuestFlagsDlc2();
 
     sead::Heap* getGameDataHeap() const { return mGameDataHeap; }
     sead::Heap* getSaveAreaHeap() const { return mSaveAreaHeap; }
@@ -266,16 +281,18 @@ public:
 #undef GDT_GET_HANDLE_
 
 #define GDT_GET_(NAME, T)                                                                          \
-    void NAME(FlagHandle handle, T* value, bool debug = false) {                                   \
-        unwrapHandle<false>(handle, debug, [&](u32 idx, TriggerParamRef& ref) {                    \
-            ref.get().NAME(value, idx);                                                            \
-            return true;                                                                           \
+    bool NAME(FlagHandle handle, T* value, bool debug = false,                                     \
+              bool ignore_trigger_param_result = false) {                                          \
+        return unwrapHandle<false>(handle, debug, [&](u32 idx, TriggerParamRef& ref) {             \
+            const bool result = ref.get().NAME(value, idx);                                        \
+            return ignore_trigger_param_result || result;                                          \
         });                                                                                        \
     }                                                                                              \
-    void NAME(FlagHandle handle, T* value, s32 sub_idx, bool debug = false) {                      \
-        unwrapHandle<false>(handle, debug, [&](u32 idx, TriggerParamRef& ref) {                    \
-            ref.get().NAME(value, idx, sub_idx);                                                   \
-            return true;                                                                           \
+    bool NAME(FlagHandle handle, T* value, s32 sub_idx, bool debug = false,                        \
+              bool ignore_trigger_param_result = false) {                                          \
+        return unwrapHandle<false>(handle, debug, [&](u32 idx, TriggerParamRef& ref) {             \
+            const bool result = ref.get().NAME(value, idx, sub_idx);                               \
+            return ignore_trigger_param_result || result;                                          \
         });                                                                                        \
     }
 
@@ -336,16 +353,11 @@ public:
         auto& ref = debug ? getParamBypassPerm() : getParam();                                     \
         return ref.get().NAME(value, name, force);                                                 \
     }                                                                                              \
-    [[gnu::noinline]] bool NAME(TRAITS::ArgType value, const sead::SafeString& name) {             \
-        return NAME(value, name, false, false);                                                    \
-    }                                                                                              \
-    [[gnu::noinline]] bool NAME##NoCheck(TRAITS::ArgType value, const sead::SafeString& name) {    \
-        return NAME(value, name, true, false);                                                     \
-    }                                                                                              \
-    [[gnu::noinline]] bool NAME##NoCheckForce(TRAITS::NoCheckForceArgType value,                   \
-                                              const sead::SafeString& name) {                      \
-        return NAME(value, name, true, true);                                                      \
-    }                                                                                              \
+    bool NAME(TRAITS::ArgType value, const sead::SafeString& name);                                \
+    bool NAME##_(TRAITS::ArgType value, const sead::SafeString& name);                             \
+    bool NAME##NoCheck(TRAITS::ArgType value, const sead::SafeString& name);                       \
+    bool NAME##NoCheck_(TRAITS::ArgType value, const sead::SafeString& name);                      \
+    bool NAME##NoCheckForce(TRAITS::NoCheckForceArgType value, const sead::SafeString& name);      \
     /* Setters for arrays (by name) */                                                             \
     KSYS_ALWAYS_INLINE bool NAME(TRAITS::ArgType value, const sead::SafeString& name, bool debug,  \
                                  bool force, s32 sub_idx) {                                        \
@@ -354,18 +366,11 @@ public:
         auto& ref = debug ? getParamBypassPerm() : getParam();                                     \
         return ref.get().NAME(value, name, sub_idx, force);                                        \
     }                                                                                              \
-    [[gnu::noinline]] bool NAME(TRAITS::ArgType value, const sead::SafeString& name,               \
-                                s32 sub_idx) {                                                     \
-        return NAME(value, name, false, false, sub_idx);                                           \
-    }                                                                                              \
-    [[gnu::noinline]] bool NAME##NoCheck(TRAITS::ArgType value, const sead::SafeString& name,      \
-                                         s32 sub_idx) {                                            \
-        return NAME(value, name, true, false, sub_idx);                                            \
-    }                                                                                              \
-    [[gnu::noinline]] bool NAME##NoCheckForce(TRAITS::NoCheckForceArgType value,                   \
-                                              const sead::SafeString& name, s32 sub_idx) {         \
-        return NAME(value, name, true, true, sub_idx);                                             \
-    }                                                                                              \
+    bool NAME(TRAITS::ArgType value, const sead::SafeString& name, s32 sub_idx);                   \
+    bool NAME##_(TRAITS::ArgType value, const sead::SafeString& name, s32 sub_idx);                \
+    bool NAME##NoCheck(TRAITS::ArgType value, const sead::SafeString& name, s32 sub_idx);          \
+    bool NAME##NoCheckForce(TRAITS::NoCheckForceArgType value, const sead::SafeString& name,       \
+                            s32 sub_idx);                                                          \
                                                                                                    \
     bool NAME(TRAITS::WrapperArgType value, FlagHandle handle, bool debug) {                       \
         if (debug) {                                                                               \
@@ -378,6 +383,15 @@ public:
         if (debug) {                                                                               \
             onChangedByDebug();                                                                    \
             return NAME##NoCheckForce(TRAITS::convertValue(value), name);                          \
+        }                                                                                          \
+        return NAME(TRAITS::convertValue(value), name);                                            \
+    }                                                                                              \
+    inline bool NAME##Special(TRAITS::WrapperArgType value, const sead::SafeString& name,          \
+                              bool debug, bool force = false) {                                    \
+        if (debug) {                                                                               \
+            onChangedByDebug();                                                                    \
+            auto& ref = debug ? getParamBypassPerm() : getParam();                                 \
+            return ref.get().NAME(TRAITS::convertValue(value), name, force);                       \
         }                                                                                          \
         return NAME(TRAITS::convertValue(value), name);                                            \
     }                                                                                              \
@@ -411,6 +425,9 @@ public:
 #undef GDT_SET_
 
 #define GDT_RESET_(NAME)                                                                           \
+    bool NAME(const sead::SafeString& name);                                                       \
+    bool NAME##_(const sead::SafeString& name);                                                    \
+    bool NAME(const sead::SafeString& name, int sub_idx);                                          \
     KSYS_ALWAYS_INLINE bool NAME##_(FlagHandle handle, bool debug) {                               \
         if (mBitFlags.isOn(BitFlag::_40000))                                                       \
             return false;                                                                          \
@@ -459,6 +476,9 @@ public:
 
 #undef GDT_RESET_
 
+    void incrementS32NoCheck(s32 value, const sead::SafeString& name);
+    void incrementS32(s32 value, const sead::SafeString& name);
+
     void increaseS32CommonFlag(s32 value, const sead::SafeString& name, s32 sub_idx, bool debug) {
         if (!mIncreaseLogger)
             return;
@@ -468,15 +488,41 @@ public:
             onChangedByDebug();
     }
 
-    void init(sead::Heap* heap, sead::Framework* framework);
+    bool wasFlagCopied(const sead::SafeString& name);
+    bool wasFlagNotCopied(const sead::SafeString& name);
 
-    void addReinitCallback(ReinitSignal::Slot& slot);
+    void copyParamToParam1();
+    void allocParam1();
+
+    FlagHandle getRevivalFlagHandle(const sead::SafeString& object_name,
+                                    const map::MubinIter& iter);
+    static bool getShopInfoIter(u32 hash, al::ByamlIter* out, const al::ByamlIter& iter,
+                                const u32* hashes);
+    bool getShopSoldOutInfo(u32 hash, al::ByamlIter* out) const {
+        return getShopInfoIter(hash, out, getShopSoldOutInfoValues(), getShopSoldOutInfoHashes());
+    }
+    void resetBoolFlagForRadarMgr(FlagBool& flag);
+
+    void allocRetryBuffer(sead::Heap* heap);
+    void destroyRetryBuffer();
+
+    void startSyncOnLoadEnd();
+
+    const al::ByamlIter& getShopAreaInfoValues() const { return mShopAreaInfoValues; }
+    const u32* getShopAreaInfoHashes() const { return mShopAreaInfoHashes; }
+    const al::ByamlIter& getShopSoldOutInfoValues() const { return mShopSoldOutInfoValues; }
+    const u32* getShopSoldOutInfoHashes() const { return mShopSoldOutInfoHashes; }
+
+    void onAnimalMasterAppearance() {
+        mBitFlags.set(BitFlag::_8);
+        mResetFlags.set(ResetFlag::AnimalMaster);
+    }
 
 private:
     enum class BitFlag {
         _1 = 0x1,
         _2 = 0x2,
-        _4 = 0x4,
+        RequestResetAllFlagsToInitial = 0x4,
         _8 = 0x8,
         _10 = 0x10,
         _20 = 0x20,
@@ -484,6 +530,7 @@ private:
         _80 = 0x80,
         _100 = 0x100,
         _200 = 0x200,
+        SyncFlags = _100 | _200,
         _400 = 0x400,
         _800 = 0x800,
         _1000 = 0x1000,
@@ -493,10 +540,11 @@ private:
         _10000 = 0x10000,
         _20000 = 0x20000,
         _40000 = 0x40000,
+        _80000 = 0x80000,
     };
 
     enum class ResetFlag {
-
+        AnimalMaster = 0x10,
     };
 
     struct MethodTreeNode {
@@ -556,6 +604,31 @@ private:
     void loadShopGameDataInfo(const sead::SafeString& path);
     void unloadResources();
 
+    void syncStart();
+    void syncUpdate(const char* data);
+    static void parseFloats(const sead::SafeString& str, f32* values, u32 n);
+    static inline void recordFlagChange(u32 platform_core_id, TriggerParam* tparam, u8 type,
+                                        const s32& idx, const s32& sub_idx = -1);
+
+    template <typename T>
+    void doSyncArray(const sead::PtrArray<FlagBase>& array, u8* buffer, const char* description);
+    template <int N>
+    void doSyncArrayStr(const sead::PtrArray<FlagBase>& array, u8* buffer, const char* description,
+                        u32 n = N);
+    template <typename T>
+    void doSyncArrayVec(const sead::PtrArray<FlagBase>& array, u8* buffer, const char* description,
+                        u32 n);
+
+    template <typename T>
+    void doSyncArray(const sead::PtrArray<sead::PtrArray<FlagBase>>& array, u8* buffer,
+                     const char* description);
+    template <int N>
+    void doSyncArrayStr(const sead::PtrArray<sead::PtrArray<FlagBase>>& array, u8* buffer,
+                        const char* description, u32 n = N);
+    template <typename T>
+    void doSyncArrayVec(const sead::PtrArray<sead::PtrArray<FlagBase>>& array, u8* buffer,
+                        const char* description, u32 n);
+
     sead::Heap* mGameDataHeap = nullptr;
     sead::Heap* mSaveAreaHeap = nullptr;
     sead::Heap* mGameDataComHeap = nullptr;
@@ -565,9 +638,9 @@ private:
 
     res::Handle mShopGameDataInfoHandle;
     al::ByamlIter mShopAreaInfoValues;
-    const u8* mShopAreaInfoHashes = nullptr;
+    const u32* mShopAreaInfoHashes = nullptr;
     al::ByamlIter mShopSoldOutInfoValues;
-    const u8* mShopSoldOutInfoHashes = nullptr;
+    const u32* mShopSoldOutInfoHashes = nullptr;
 
     TriggerParamRef mParamBypassPerm{&mFlagBuffer1, &mFlagBuffer, false, false, false};
     TriggerParamRef mParam{&mFlagBuffer1, &mFlagBuffer, true, false, false};

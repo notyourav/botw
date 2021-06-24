@@ -6,6 +6,8 @@ import capstone as cs
 
 from util import dsym, elf, utils
 
+_store_instructions = ("str", "strb", "strh", "stur", "sturb", "sturh")
+
 
 class FunctionChecker:
     def __init__(self, log_mismatch_cause: bool = False):
@@ -58,18 +60,23 @@ class FunctionChecker:
                     gprs1[i1.operands[0].reg] = i1.operands[1].imm
                     gprs2[i2.operands[0].reg] = i2.operands[1].imm
                     adrp_pair_registers.add(i1.operands[0].reg)
-                elif i1.mnemonic == 'ldr':
-                    reg = i1.operands[1].value.mem.base
+                elif i1.mnemonic == 'ldp' or i1.mnemonic == 'ldpsw':
+                    reg = i1.operands[2].value.mem.base
                     if reg in adrp_pair_registers:
                         adrp_pair_registers.remove(reg)
-                elif i1.mnemonic == 'ldp':
-                    reg = i1.operands[2].value.mem.base
+                elif i1.mnemonic.startswith('ld'):
+                    reg = i1.operands[1].value.mem.base
                     if reg in adrp_pair_registers:
                         adrp_pair_registers.remove(reg)
                 elif i1.mnemonic == 'add':
                     reg = i1.operands[1].reg
                     if reg in adrp_pair_registers:
                         adrp_pair_registers.remove(reg)
+                elif i1.mnemonic == 'b':
+                    branch_target = i1.operands[0].imm
+                    if not (base_fn.addr <= branch_target < base_fn.addr + size):
+                        if not self._check_function_call(i1, i2, branch_target, i2.operands[0].imm):
+                            return False
                 continue
 
             if i1.mnemonic != i2.mnemonic:
@@ -106,24 +113,7 @@ class FunctionChecker:
                 adrp_pair_registers.add(reg)
                 continue
 
-            if i1.mnemonic == 'ldr' or i1.mnemonic == 'str':
-                if i1.operands[0].reg != i2.operands[0].reg:
-                    return False
-                if i1.operands[1].value.mem.base != i2.operands[1].value.mem.base:
-                    return False
-                reg = i1.operands[1].value.mem.base
-                if reg not in adrp_pair_registers:
-                    return False
-
-                gprs1[reg] += i1.operands[1].value.mem.disp
-                gprs2[reg] += i2.operands[1].value.mem.disp
-                if not self._check_data_symbol_load(i1, i2, gprs1[reg], gprs2[reg]):
-                    return False
-
-                adrp_pair_registers.remove(reg)
-                continue
-
-            if i1.mnemonic == 'ldp' or i1.mnemonic == 'stp':
+            if i1.mnemonic == 'ldp' or i1.mnemonic == 'ldpsw' or i1.mnemonic == 'stp':
                 if i1.operands[0].reg != i2.operands[0].reg:
                     return False
                 if i1.operands[1].reg != i2.operands[1].reg:
@@ -136,6 +126,23 @@ class FunctionChecker:
 
                 gprs1[reg] += i1.operands[2].value.mem.disp
                 gprs2[reg] += i2.operands[2].value.mem.disp
+                if not self._check_data_symbol_load(i1, i2, gprs1[reg], gprs2[reg]):
+                    return False
+
+                adrp_pair_registers.remove(reg)
+                continue
+
+            if i1.mnemonic.startswith('ld') or i1.mnemonic in _store_instructions:
+                if i1.operands[0].reg != i2.operands[0].reg:
+                    return False
+                if i1.operands[1].value.mem.base != i2.operands[1].value.mem.base:
+                    return False
+                reg = i1.operands[1].value.mem.base
+                if reg not in adrp_pair_registers:
+                    return False
+
+                gprs1[reg] += i1.operands[1].value.mem.disp
+                gprs2[reg] += i2.operands[1].value.mem.disp
                 if not self._check_data_symbol_load(i1, i2, gprs1[reg], gprs2[reg]):
                     return False
 
@@ -205,6 +212,7 @@ class FunctionChecker:
     def _check_function_call(self, i1, i2, orig_addr: int, decomp_addr: int) -> bool:
         name = self.decompiled_fns.get(orig_addr, None)
         if name is None:
+            self.on_unknown_fn_call(orig_addr, decomp_addr)
             return True
 
         decomp_symbol = self.my_symtab[name]
@@ -215,3 +223,6 @@ class FunctionChecker:
             self._set_mismatch_cause(i1, i2, f"function call mismatch: {name}")
 
         return False
+
+    def on_unknown_fn_call(self, orig_addr: int, decomp_addr: int) -> None:
+        pass

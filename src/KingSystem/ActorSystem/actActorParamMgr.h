@@ -30,11 +30,11 @@ class ActorParamMgr final : public sead::hostio::Node, public KingEditorComponen
 
 public:
     const char* getName() const override { return "AglXml"; }
-    void syncData(const char* data) override;
+    void syncData(char* data) override;
 
     DebugMessage& getDebugMessage() { return mDebugMessage; }
     sead::Heap* getDebugHeap() const { return mDebugHeap; }
-    sead::Heap* getTmpActorParamMgrHeap() const { return mTmpActorParamMgrHeap; }
+    sead::Heap* getTmpActorParamMgrHeap() const { return mTempHeap; }
 
     bool checkPath(const sead::SafeString& path) const;
 
@@ -45,6 +45,9 @@ public:
     ActorParam* loadParam(const char* actor_name, res::Handle* pack_handle, void* x,
                           u32 load_req_c);
     void unloadParam(ActorParam* param);
+
+    bool requestLoadActorPack(res::Handle* handle, const sead::SafeString& actor_name,
+                              u32 load_req_c);
 
     ActorParam* loadParamAsync(const char* actor_name, res::Handle* pack_handle,
                                bool* allocated_new, void* x, u32 load_req_c);
@@ -65,8 +68,6 @@ private:
 
     void loadFiles(ActorParam* param, sead::Heap* heap, res::Handle* pack_handle, void* x,
                    u32 load_req_c);
-    bool requestLoadActorPack(res::Handle* handle, const sead::SafeString& actor_name,
-                              u32 load_req_c);
     bool prepareLoadFromActorPack(sead::BufferedSafeString* path, res::LoadRequest* req, void* x,
                                   const sead::SafeString& dir_name,
                                   const sead::SafeString& extension,
@@ -94,6 +95,10 @@ private:
 
     void allocExtraResHandles(ActorParam* param, sead::Heap* heap) const;
 
+    res::Handle& getDummyResHandle(ActorParam::ResourceType type) {
+        return mDummyResources[int(type)];
+    }
+
     static constexpr s32 NumParams = 0x400;
 
     sead::TypedBitFlag<Flag> mFlags{};
@@ -102,7 +107,7 @@ private:
     void* _e0 = nullptr;
     void* _e8 = nullptr;
     sead::Heap* mDebugHeap = nullptr;
-    sead::Heap* mTmpActorParamMgrHeap = nullptr;
+    sead::Heap* mTempHeap = nullptr;
     sead::SafeArray<res::Handle, ActorParam::NumResourceTypes> mDummyResources;
     mutable sead::CriticalSection mCS;
 };

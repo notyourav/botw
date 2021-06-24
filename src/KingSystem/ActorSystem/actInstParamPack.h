@@ -17,10 +17,10 @@ class BaseProc;
 class InstParamPack {
 public:
     enum class EntryType {
-        /// Signed(?) 32-bit integer.
+        /// Signed 32-bit integer.
         Int = 0,
-        /// Unknown.
-        _1 = 1,
+        /// Unsigned 32-bit integer.
+        UInt = 1,
         /// Single-precision float.
         Float = 2,
         /// Boolean.
@@ -62,9 +62,40 @@ public:
         Buffer() { clear(); }
         Buffer& operator=(const Buffer& other);
 
+        auto getNumParams() const { return mNumItems; }
+        void clearFast() { mNumItems = 0; }
+
         void clear();
         void add(const void* data, const sead::SafeString& name, s32 byte_size, EntryType type);
         void add(ActorCallback* callback, const sead::SafeString& name);
+
+        void add(int data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::Int);
+        }
+
+        void add(u32 data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::UInt);
+        }
+
+        void add(float data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::Float);
+        }
+
+        void add(bool data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::Bool);
+        }
+
+        void add(const sead::Vector3f& data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::Vec3);
+        }
+
+        void add(const sead::SafeString& data, const sead::SafeString& name) {
+            add(data.cstr(), name, data.calcLength() + 1, EntryType::String);
+        }
+
+        void add(const sead::Matrix34f& data, const sead::SafeString& name) {
+            add(&data, name, sizeof(data), EntryType::Matrix34);
+        }
 
         bool pop(s32* position, Entry* out_entry);
 
@@ -100,6 +131,12 @@ public:
 
     Buffer& getBuffer() { return mBuffer; }
     const Buffer& getBuffer() const { return mBuffer; }
+
+    BaseProc* getProc() const { return mProc; }
+    void setProc(BaseProc* proc) { mProc = proc; }
+
+    Buffer* operator->() { return &mBuffer; }
+    const Buffer* operator->() const { return &mBuffer; }
 
 private:
     BaseProc* mProc = nullptr;

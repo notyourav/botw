@@ -1,4 +1,8 @@
 target_sources(uking PRIVATE
-  aoc2.cpp
-  aoc2.h
+  aocChampionBalladManager.cpp
+  aocChampionBalladManager.h
+  aocHardModeManager.cpp
+  aocHardModeManager.h
+  aocManager.cpp
+  aocManager.h
 )

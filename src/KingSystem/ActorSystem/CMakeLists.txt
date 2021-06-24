@@ -1,4 +1,13 @@
 target_sources(uking PRIVATE
+  LOD/actLodState.cpp
+  LOD/actLodState.h
+
+  Profiles/actPlayerBase.cpp
+  Profiles/actPlayerBase.h
+  Profiles/actRopeBase.cpp
+  Profiles/actRopeBase.h
+
+  actActor.cpp
   actActor.h
   actActorCaptureMgr.cpp
   actActorCaptureMgr.h
@@ -6,32 +15,69 @@ target_sources(uking PRIVATE
   actActorConstDataAccess.h
   actActorCreator.cpp
   actActorCreator.h
+  actActorEditorNode.cpp
+  actActorEditorNode.h
   actActorFactory.cpp
   actActorFactory.h
+  actActorHeapUtil.cpp
+  actActorHeapUtil.h
+  actActorLimiter.cpp
+  actActorLimiter.h
   actActorLinkConstDataAccess.cpp
   actActorLinkConstDataAccess.h
   actActorParam.cpp
   actActorParam.h
   actActorParamMgr.cpp
   actActorParamMgr.h
+  actActorSystem.cpp
+  actActorSystem.h
   actActorTemplate.cpp
   actActorTemplate.h
+  actActorUtil.cpp
+  actActorUtil.h
   actAiAction.cpp
   actAiAction.h
-  actAiClass.cpp
-  actAiClass.h
+  actAiActionBase.cpp
+  actAiActionBase.h
+  actAiAi.cpp
+  actAiAi.h
+  actAiBehavior.cpp
+  actAiBehavior.h
+  actAiClassDef.cpp
+  actAiClassDef.h
+  actAiInlineParam.h
   actAiParam.cpp
   actAiParam.h
-  actAttention.cpp
-  actAttention.h
+  actAiQuery.cpp
+  actAiQuery.h
+  actAiQueries.cpp
+  actAiQueries.h
+  actAiRoot.cpp
+  actAiRoot.h
+  actASSetting.cpp
+  actASSetting.h
+  Attention/actAttention.cpp
+  Attention/actAttention.h
   actBaseProc.cpp
   actBaseProc.h
+  actBaseProcCreateTask.cpp
+  actBaseProcCreateTask.h
+  actBaseProcCreateTaskSelector.cpp
+  actBaseProcCreateTaskSelector.h
+  actBaseProcDeleter.cpp
+  actBaseProcDeleter.h
   actBaseProcHandle.cpp
   actBaseProcHandle.h
+  actBaseProcHeapMgr.cpp
+  actBaseProcHeapMgr.h
+  actBaseProcInitializer.cpp
+  actBaseProcInitializer.h
   actBaseProcJob.cpp
   actBaseProcJob.h
   actBaseProcJobHandler.cpp
   actBaseProcJobHandler.h
+  actBaseProcJobQue.cpp
+  actBaseProcJobQue.h
   actBaseProcLink.cpp
   actBaseProcLink.h
   actBaseProcMap.cpp
@@ -42,10 +88,25 @@ target_sources(uking PRIVATE
   actBaseProcUnit.h
   actDebug.cpp
   actDebug.h
+  actGlobalParameter.cpp
+  actGlobalParameter.h
+  actInfoCommon.cpp
+  actInfoCommon.h
   actInfoData.cpp
   actInfoData.h
   actInstParamPack.cpp
   actInstParamPack.h
   actLifeRecoveryInfo.h
+  actPlayerInfo.cpp
+  actPlayerInfo.h
   actTag.h
+
+  actionDummyAction.cpp
+  actionDummyAction.h
+  aiDummyAi.cpp
+  aiDummyAi.h
+  behaviorDummyBehavior.cpp
+  behaviorDummyBehavior.h
+  queryDummyQuery.cpp
+  queryDummyQuery.h
 )

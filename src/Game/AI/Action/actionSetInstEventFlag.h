@@ -1,18 +1,19 @@
 #pragma once
 
 #include "KingSystem/ActorSystem/actAiAction.h"
-#include "KingSystem/ActorSystem/actAiParam.h"
-#include "KingSystem/Utils/Types.h"
 
 namespace uking::action {
 
-class SetInstEventFlagAction : public ksys::act::ai::Action {
+class SetInstEventFlag : public ksys::act::ai::Action {
+    SEAD_RTTI_OVERRIDE(SetInstEventFlag, ksys::act::ai::Action)
 public:
-    SetInstEventFlagAction(const ksys::act::ai::ClassArg& arg);
-    ~SetInstEventFlagAction() override;
+    explicit SetInstEventFlag(const InitArg& arg);
+    ~SetInstEventFlag() override;
 
-    void oneShot() override;
+    bool init_(sead::Heap* heap) override;
+    void loadParams_() override;
+
+protected:
 };
-KSYS_CHECK_SIZE_NX150(SetInstEventFlagAction, 0x20);
 
 }  // namespace uking::action

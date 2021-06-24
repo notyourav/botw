@@ -8,6 +8,7 @@
 #include <container/seadPtrArray.h>
 #include <container/seadSafeArray.h>
 #include <gfx/seadColor.h>
+#include <prim/seadBitFlag.h>
 #include <prim/seadStorageFor.h>
 #include <prim/seadTypedBitFlag.h>
 #include "KingSystem/GameData/gdtFlag.h"
@@ -22,8 +23,9 @@ namespace ksys::gdt {
 class TriggerParam {
 public:
     struct ResetEntry {
-        sead::SizedEnum<FlagType::ValueType, u8> type;
-        sead::SizedEnum<ResetType, u8> reset_type;
+        sead::SizedEnum<FlagType::ValueType, s8> type;
+        sead::SizedEnum<ResetType, s8> reset_type;
+        s16 sub_index;
         s32 index;
     };
     KSYS_CHECK_SIZE_NX150(ResetEntry, 0x8);
@@ -99,36 +101,45 @@ public:
 
     // region Value getters (by name)
 
-    bool getBool(bool* value, const sead::SafeString& name, bool check_permissions) const;
-    bool getBool2(bool* value, const sead::SafeString& name, bool check_permissions) const;
-    bool getS32(s32* value, const sead::SafeString& name, bool check_permissions) const;
-    bool getF32(f32* value, const sead::SafeString& name, bool check_permissions) const;
-    bool getStr(const char** value, const sead::SafeString& name, bool check_permissions) const;
-    bool getStr64(const char** value, const sead::SafeString& name, bool check_permissions) const;
-    bool getStr256(const char** value, const sead::SafeString& name, bool check_permissions) const;
-    bool getVec2f(sead::Vector2f* value, const sead::SafeString& name,
-                  bool check_permissions) const;
-    bool getVec3f(sead::Vector3f* value, const sead::SafeString& name,
-                  bool check_permissions) const;
-    bool getVec4f(sead::Vector4f* value, const sead::SafeString& name,
-                  bool check_permissions) const;
+    bool getBool(bool* value, const sead::SafeString& name, bool check_permissions,
+                 bool x = true) const;
+    bool getBool2(bool* value, const sead::SafeString& name, bool check_permissions,
+                  bool x = true) const;
+    bool getS32(s32* value, const sead::SafeString& name, bool check_permissions,
+                bool x = true) const;
+    bool getF32(f32* value, const sead::SafeString& name, bool check_permissions,
+                bool x = true) const;
+    bool getStr(const char** value, const sead::SafeString& name, bool check_permissions,
+                bool x = true) const;
+    bool getStr64(const char** value, const sead::SafeString& name, bool check_permissions,
+                  bool x = true) const;
+    bool getStr256(const char** value, const sead::SafeString& name, bool check_permissions,
+                   bool x = true) const;
+    bool getVec2f(sead::Vector2f* value, const sead::SafeString& name, bool check_permissions,
+                  bool x = true) const;
+    bool getVec3f(sead::Vector3f* value, const sead::SafeString& name, bool check_permissions,
+                  bool x = true) const;
+    bool getVec4f(sead::Vector4f* value, const sead::SafeString& name, bool check_permissions,
+                  bool x = true) const;
 
-    bool getBool(bool* value, const sead::SafeString& name, s32 index,
-                 bool check_permissions) const;
-    bool getS32(s32* value, const sead::SafeString& name, s32 index, bool check_permissions) const;
-    bool getF32(f32* value, const sead::SafeString& name, s32 index, bool check_permissions) const;
-    bool getStr(const char** value, const sead::SafeString& name, s32 index,
-                bool check_permissions) const;
+    bool getBool(bool* value, const sead::SafeString& name, s32 index, bool check_permissions,
+                 bool x = true) const;
+    bool getS32(s32* value, const sead::SafeString& name, s32 index, bool check_permissions,
+                bool x = true) const;
+    bool getF32(f32* value, const sead::SafeString& name, s32 index, bool check_permissions,
+                bool x = true) const;
+    bool getStr(const char** value, const sead::SafeString& name, s32 index, bool check_permissions,
+                bool x = true) const;
     bool getStr64(const char** value, const sead::SafeString& name, s32 index,
-                  bool check_permissions) const;
+                  bool check_permissions, bool x = true) const;
     bool getStr256(const char** value, const sead::SafeString& name, s32 index,
-                   bool check_permissions) const;
+                   bool check_permissions, bool x = true) const;
     bool getVec2f(sead::Vector2f* value, const sead::SafeString& name, s32 index,
-                  bool check_permissions) const;
+                  bool check_permissions, bool x = true) const;
     bool getVec3f(sead::Vector3f* value, const sead::SafeString& name, s32 index,
-                  bool check_permissions) const;
+                  bool check_permissions, bool x = true) const;
     bool getVec4f(sead::Vector4f* value, const sead::SafeString& name, s32 index,
-                  bool check_permissions) const;
+                  bool check_permissions, bool x = true) const;
 
     // endregion
 
@@ -337,15 +348,15 @@ public:
     bool resetVec3f(s32 idx, bool check_permissions);
     bool resetVec4f(s32 idx, bool check_permissions);
 
-    bool resetBool(const sead::SafeString& name, bool check_permissions);
-    bool resetS32(const sead::SafeString& name, bool check_permissions);
-    bool resetF32(const sead::SafeString& name, bool check_permissions);
-    bool resetStr(const sead::SafeString& name, bool check_permissions);
-    bool resetStr64(const sead::SafeString& name, bool check_permissions);
-    bool resetStr256(const sead::SafeString& name, bool check_permissions);
-    bool resetVec2f(const sead::SafeString& name, bool check_permissions);
-    bool resetVec3f(const sead::SafeString& name, bool check_permissions);
-    bool resetVec4f(const sead::SafeString& name, bool check_permissions);
+    bool resetBool(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetS32(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetF32(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetStr(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetStr64(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetStr256(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetVec2f(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetVec3f(const sead::SafeString& name, bool check_permissions, bool = true);
+    bool resetVec4f(const sead::SafeString& name, bool check_permissions, bool = true);
 
     // endregion
 
@@ -361,20 +372,24 @@ public:
     bool resetVec3f(s32 idx, s32 sub_idx, bool check_permissions);
     bool resetVec4f(s32 idx, s32 sub_idx, bool check_permissions);
 
-    bool resetBool(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetS32(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetF32(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetStr(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetStr64(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetStr256(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetVec2f(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetVec3f(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
-    bool resetVec4f(const sead::SafeString& name, s32 sub_idx, bool check_permissions);
+    bool resetBool(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetS32(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetF32(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetStr(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetStr64(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetStr256(const sead::SafeString& name, s32 sub_idx, bool check_permissions,
+                     bool = true);
+    bool resetVec2f(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetVec3f(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
+    bool resetVec4f(const sead::SafeString& name, s32 sub_idx, bool check_permissions, bool = true);
 
     // endregion
 
     void resetAllFlagsToInitialValues();
-    void resetFlagsAccordingToPolicy();
+    /// @param policy  A bitmask that indicates the reset policy to use.
+    /// @param skip  The number of flags to skip processing.
+    /// @return the number of flags that have been processed.
+    int resetFlagsAccordingToPolicy(sead::BitFlag32 policy, int skip);
 
     // region Flag getters
 
@@ -443,6 +458,8 @@ public:
                           bool ignore_temp_flags);
 
 private:
+    friend class Manager;
+
     enum class BitFlag : u8 {
         _1 = 1,
         _2 = 2,

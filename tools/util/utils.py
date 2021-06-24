@@ -1,10 +1,18 @@
+import io
+
 from colorama import Fore, Style
 import csv
-import cxxfilt
+import warnings
 import enum
 from pathlib import Path
 import sys
 import typing as tp
+
+try:
+    import cxxfilt
+except:
+    # cxxfilt cannot be used on Windows.
+    warnings.warn("cxxfilt could not be imported; demangling functions will fail")
 
 
 class FunctionStatus(enum.Enum):
@@ -48,12 +56,37 @@ def parse_function_csv_entry(row) -> FunctionInfo:
     return FunctionInfo(addr, name, int(size, 0), decomp_name, status, row)
 
 
+def get_functions_csv_path() -> Path:
+    return get_repo_root() / "data" / "uking_functions.csv"
+
+
 def get_functions(path: tp.Optional[Path] = None) -> tp.Iterable[FunctionInfo]:
     if path is None:
-        path = get_repo_root() / "data" / "uking_functions.csv"
+        path = get_functions_csv_path()
     with path.open() as f:
-        for row in csv.reader(f):
-            yield parse_function_csv_entry(row)
+        reader = csv.reader(f)
+        for row in reader:
+            try:
+                entry = parse_function_csv_entry(row)
+                # excluded library function
+                if entry.decomp_name == "l":
+                    continue
+                yield entry
+            except ValueError as e:
+                raise Exception(f"Failed to parse line {reader.line_num}") from e
+
+
+def add_decompiled_functions(new_matches: tp.Dict[int, str],
+                             new_orig_names: tp.Optional[tp.Dict[int, str]] = None) -> None:
+    buffer = io.StringIO()
+    writer = csv.writer(buffer, lineterminator="\n")
+    for func in get_functions():
+        if new_orig_names is not None and func.status == FunctionStatus.NotDecompiled and func.addr in new_orig_names:
+            func.raw_row[1] = new_orig_names[func.addr]
+        if func.status == FunctionStatus.NotDecompiled and func.addr in new_matches:
+            func.raw_row[3] = new_matches[func.addr]
+        writer.writerow(func.raw_row)
+    get_functions_csv_path().write_text(buffer.getvalue())
 
 
 def format_symbol_name(name: str) -> str:
