@@ -1,22 +1,23 @@
 #include "KingSystem/System/NFP.h"
 #include <thread/seadThreadUtil.h>
+#include <prim/seadDelegate.h>
 
 namespace ksys {
 
-SEAD_SINGLETON_DISPOSER_IMPL(NFP);
+SEAD_SINGLETON_DISPOSER_IMPL(NFP)
 
 NFP::NFPThread::NFPThread(sead::ExpHeap* heap, s32 size, s32 priority)
-    : DelegateThread("NFP Thread", heap, priority, sead::MessageQueue::BlockType::NonBlocking,
-                 0x7FFFFFFF, size, 0x20) {
+    : DelegateThread("NFP Thread", new (heap) sead::Delegate2<NFPThread, sead::Thread*, sead::MessageQueue::Element>(this, &NFPThread::calc_), heap, priority, sead::MessageQueue::BlockType::NonBlocking,
+                     0x7FFFFFFF, size, 0x20) {
     _190.makeAllZero();
     _194.makeAllZero();
-    
+
     _270 = -1;
     sRegInfo = 0;
-    
+
     _214 = 8;
     _22C = 8;
-                 }
+}
 
 void NFP::NFPThread::calc_(sead::MessageQueue::Element msg) {}
 

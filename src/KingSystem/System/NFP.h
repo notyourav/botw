@@ -1,15 +1,15 @@
 #pragma once
 
-#include <prim/seadTypedBitFlag.h>
 #include <heap/seadDisposer.h>
 #include <heap/seadExpHeap.h>
 #include <hostio/seadHostIONode.h>
+#include <prim/seadTypedBitFlag.h>
 #include <thread/seadDelegateThread.h>
 
 namespace ksys {
 
 class NFP final : public sead::hostio::Node {
-    SEAD_SINGLETON_DISPOSER(NFP);
+    SEAD_SINGLETON_DISPOSER(NFP)
 
     struct NFPThread : sead::DelegateThread {
         enum class NFPFlag {
@@ -24,7 +24,7 @@ class NFP final : public sead::hostio::Node {
 
         sead::CriticalSection mCritSect1;
         s32 _148[12];
-        sead::TypedBitFlag<NFPFlag, u16> _190; // unknown flag
+        sead::TypedBitFlag<NFPFlag, u16> _190;  // unknown flag
         sead::TypedBitFlag<NFPFlag, u16> _194;
 
         sead::FixedSafeString<0x30> _1B8;
@@ -38,7 +38,7 @@ class NFP final : public sead::hostio::Node {
 
         s32 _270;
 
-        u8 _2A0 = 0; // obvious array of structs
+        u8 _2A0 = 0;  // obvious array of structs
         u8 _2D0 = 0;
         u32 _2D8 = 0;
 
@@ -53,7 +53,6 @@ class NFP final : public sead::hostio::Node {
         u8 _3F0 = 0;
         u8 _420 = 0;
         u32 _428 = 0;
-
     };
 
 public:
